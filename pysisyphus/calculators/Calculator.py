@@ -57,6 +57,7 @@ class Calculator:
         out_dir=OUT_DIR_DEFAULT,
         force_num_hess=False,
         num_hess_kwargs=None,
+        **kwargs,
     ):
         """Base-class of all calculators.
 
@@ -149,6 +150,7 @@ class Calculator:
         self.hessian_kind = HessKind["ORG"]
         if force_num_hess:
             self.force_num_hessian()
+        print(f"{self.__class__.__name__} ignoring kwargs: {kwargs}")
 
     def get_cmd(self, key="cmd"):
         assert self.conf_key, "'conf_key'-attribute is missing for this calculator!"

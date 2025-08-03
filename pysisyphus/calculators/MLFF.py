@@ -50,7 +50,7 @@ class MLFF(Calculator):
             self.method in valid_method
         ), f"Invalid method argument. Allowed arguments are: {', '.join(valid_method)}!"
         
-        self.model = get_mlff(self.method, device=self.device)
+        self.model = get_mlff(self.method, device=self.device, **kwargs)
 
     def prepare_mol(self, atoms, coords):
         from ase.io import read
