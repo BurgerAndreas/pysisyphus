@@ -774,6 +774,8 @@ class Optimizer(metaclass=abc.ABCMeta):
         \tmax(forces,cartesian): {max_cart_forces:.6f} hartree/bohr
         \trms(forces,cartesian): {rms_cart_forces:.6f} hartree/bohr
         \tenergy: {energy:.8f} hartree
+        \tcnt_hessian_autograd: {self.geometry.calculator.cnt_hessian_autograd if hasattr(self.geometry.calculator, "cnt_hessian_autograd") else None}
+        \tcnt_hessian_predict: {self.geometry.calculator.cnt_hessian_predict if hasattr(self.geometry.calculator, "cnt_hessian_predict") else None}
         """
         return textwrap.dedent(final_summary.strip())
 

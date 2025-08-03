@@ -1285,6 +1285,13 @@ VALID_KEYS = {
     "shake",
     "stocastic",
     "tsopt",
+    # Added Andreas
+    "device",
+    "ckpt_path",
+    "config_path",
+    "hessian_method",
+    "calc_kwargs",
+    # End Added Andreas
 }
 
 
@@ -1392,6 +1399,11 @@ def main(run_dict, restart=False, yaml_dir="./", scheduler=None):
         }
     else:
         iter_dict = None
+    print("opt", run_dict["opt"])
+    if run_dict["tsopt"]:
+        print("tsopt", run_dict["tsopt"])
+    if run_dict["irc"]:
+        print("irc", run_dict["irc"])
     print(f"{__file__} got calc_kwargs: {calc_kwargs}")
     calc_getter = get_calc_closure(
         calc_base_name, calc_key, calc_kwargs, iter_dict=iter_dict
@@ -1972,6 +1984,10 @@ def run_from_dict(
         "\thttps://doi.org/10.1002/qua.26390\n\nGood luck!\n"
     )
     print(citation)
+    
+    print(f"{__file__} run_dict before setup_run_dict:")
+    pprint(run_dict)
+    print()
 
     init_logging(cwd, scheduler)
     # Load defaults etc.
@@ -1993,7 +2009,11 @@ def run_from_dict(
         return
 
     run_dict_without_none = {k: v for k, v in run_dict.items() if v is not None}
+    print(f"{__file__} run_dict_without_none: {run_dict_without_none}")
     pprint(run_dict_without_none)
+    print()
+    print("Full run_dict:")
+    pprint(run_dict)
     print()
     sys.stdout.flush()
 
@@ -2013,6 +2033,7 @@ def load_run_dict(yaml_fn):
         loader = get_loader()
         try:
             run_dict = yaml.load(yaml_str, Loader=loader)
+            print(f"{__file__} loaded run_dict: {run_dict}")
         except yaml.constructor.ConstructorError as err:
             mobj = re.compile(r"for the tag '\!(\w+)'").search(err.problem)
             if mobj:
@@ -2025,7 +2046,7 @@ def load_run_dict(yaml_fn):
             raise err
         assert type(run_dict) == type(dict())
     except (AssertionError, yaml.parser.ParserError) as err:
-        print(err)
+        print(f"error in load_run_dict: {err}")
         if not (yaml_fn.lower().endswith(".yaml")):
             print("Are you sure that you supplied a YAML file?")
         sys.exit(1)

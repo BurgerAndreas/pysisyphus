@@ -267,5 +267,5 @@ def do_endopt_ts_barriers(
     for fn, en, gnum in zip(fns, energies_corr, geom_nums):
         geom_str = "geometry" if gnum == 1 else "geometries"
         is_sum = " " if gnum == 1 else "Σ"
-        print(f"\t{is_sum}{fn:>{max_len}s}: {en:>8.2f} kJ mol⁻¹ ({gnum} {geom_str})")
+        print(f"\t{is_sum}{fn:>{max_len}s}: {en:>8.2f} kJ mol⁻¹ ({gnum} {geom_str}) ({__file__})")
     print()
