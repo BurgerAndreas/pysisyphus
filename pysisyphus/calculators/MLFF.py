@@ -56,7 +56,8 @@ class MLFF(Calculator):
         from ase.io import read
         coords = coords * BOHR2ANG
         string = make_xyz_str(atoms, coords.reshape((-1, 3)))
-        with open('mlff.xyz','w') as f: f.write(string)
+        with open('mlff.xyz','w') as f: 
+            f.write(string)
         mol = read('mlff.xyz')
         os.remove('mlff.xyz')
         return mol
@@ -80,9 +81,9 @@ class MLFF(Calculator):
         results = self.model.get_forces(molecule)
         return results
 
-    def get_hessian(self, atoms, coords):
+    def get_hessian(self, atoms, coords, **kwargs):
         molecule = self.prepare_mol(atoms, coords)
-        results = self.model.get_hessian(molecule)
+        results = self.model.get_hessian(molecule, **kwargs)
         return results
 
     def run_calculation(self, atoms, coords):

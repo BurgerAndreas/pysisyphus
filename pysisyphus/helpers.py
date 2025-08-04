@@ -483,6 +483,8 @@ def do_final_hessian(
     if out_dir is None:
         out_dir = "."
     out_dir = Path(out_dir)
+    
+    print(f"{__file__} {__name__}")
 
     print(highlight_text("Hessian at final geometry", level=1))
     print()
@@ -511,6 +513,40 @@ def do_final_hessian(
         wavenum_str = np.array2string(wavenumbers, precision=2)
         print("Imaginary frequencies:", wavenum_str, "cm⁻¹")
 
+    # Andreas begin
+    print(f"geom.calculator: {geom.calculator.__class__.__name__}")
+    print(f"geom.calculator.model: {geom.calculator.model.__class__.__name__}")
+    # do frequency analysis with both hessian methods
+    if hasattr(geom.calculator.model, "hessian_method"):
+        hessian_method = geom.calculator.model.hessian_method
+        assert geom.calculator.model.hessian_method == geom.calculator.model.model.hessian_method
+        
+        # print the same thing again, but make clear which hessian method is used
+        print()
+        print(f"{hessian_method} First 10 eigenvalues", eigval_str)
+        if neg_num > 0:
+            wavenumbers = eigval_to_wavenumber(neg_eigvals)
+            wavenum_str = np.array2string(wavenumbers, precision=2)
+            print(f"{hessian_method} Img freqs:", wavenum_str, "cm⁻¹")
+        
+        # print the other hessian method
+        other_hessian_method = "autograd" if hessian_method == "predict" else "predict"
+        if other_hessian_method == "autograd" or geom.calculator.model.model.potential.do_hessian:
+            # do_hessian==False and predict won't work
+            other_hessian = geom.get_hessian_with_kwargs(hessian_method=other_hessian_method)
+            other_eigvals, _ = np.linalg.eigh(other_hessian)
+            other_neg_inds = other_eigvals < ev_thresh
+            other_neg_eigvals = other_eigvals[other_neg_inds]
+            other_neg_num = sum(other_neg_inds)
+            other_eigval_str = np.array2string(other_eigvals[:10], precision=4)
+            print()
+            print(f"{other_hessian_method} First 10 eigenvalues", other_eigval_str)
+            if other_neg_num > 0:
+                other_wavenumbers = eigval_to_wavenumber(other_neg_eigvals)
+                other_wavenum_str = np.array2string(other_wavenumbers, precision=2)
+                print(f"{other_hessian_method} Img freqs:", other_wavenum_str, "cm⁻¹")
+    # Andreas end
+    
     if prefix:
         prefix = f"{prefix}_"
 

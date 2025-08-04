@@ -1022,12 +1022,18 @@ class Geometry:
             results = self.calculator.get_hessian(self.atoms, self._coords)
             self.set_results(results)
         return self._hessian
+    
+    # Added Andreas for Equiformer calculator
+    def get_hessian_with_kwargs(self, **kwargs):
+        results = self.calculator.get_hessian(self.atoms, self._coords, **kwargs)
+        return results["hessian"]
 
     @cart_hessian.setter
     def cart_hessian(self, cart_hessian):
         if cart_hessian is not None:
-            cart_hessian = np.array(cart_hessian)
-            assert cart_hessian.shape == (self.cart_coords.size, self.cart_coords.size)
+            cart_hessian = np.array(cart_hessian).reshape(self.cart_coords.size, self.cart_coords.size)
+            assert cart_hessian.shape == (self.cart_coords.size, self.cart_coords.size), \
+                f"{cart_hessian.shape} == {self.cart_coords.size}, {self.cart_coords.size}"
         self._hessian = cart_hessian
 
     @property
