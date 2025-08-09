@@ -774,8 +774,8 @@ class Optimizer(metaclass=abc.ABCMeta):
         \tmax(forces,cartesian): {max_cart_forces:.6f} hartree/bohr
         \trms(forces,cartesian): {rms_cart_forces:.6f} hartree/bohr
         \tenergy: {energy:.8f} hartree
-        \tcnt_hessian_autograd: {self.geometry.calculator.cnt_hessian_autograd if hasattr(self.geometry.calculator, "cnt_hessian_autograd") else None}
-        \tcnt_hessian_predict: {self.geometry.calculator.cnt_hessian_predict if hasattr(self.geometry.calculator, "cnt_hessian_predict") else None}
+        \tcnt_hessian_autograd: {self.geometry.calculator.model.cnt_hessian_autograd if hasattr(self.geometry.calculator.model, "cnt_hessian_autograd") else None}
+        \tcnt_hessian_predict: {self.geometry.calculator.model.cnt_hessian_predict if hasattr(self.geometry.calculator.model, "cnt_hessian_predict") else None}
         """
         return textwrap.dedent(final_summary.strip())
 
@@ -818,6 +818,9 @@ class Optimizer(metaclass=abc.ABCMeta):
                     with open(sim_fn, "w") as handle:
                         handle.write(self.geometry.as_xyz())
                     print(f"Dumped latest coordinates to '{sim_fn}'.")
+                    self.table.print(f"{self.__class__.__name__} pysis result: Stopped due to too similar coordinates!")
+                    self.table.print(f"{self.__class__.__name__} Cycles taken: {self.cur_cycle}")
+                    self.table.print(f"{self.__class__.__name__} Time taken: {time.time() - self.start_time:.2f} s")
                     break
 
             # Check if something considerably changed in the optimization,
@@ -909,6 +912,9 @@ class Optimizer(metaclass=abc.ABCMeta):
                 self.table.print("Converged!")
                 # Added Andreas
                 self.table.print(f"Optimizer {self.__class__.__name__} converged at cycle {self.cur_cycle}!")
+                self.table.print(f"{self.__class__.__name__} pysis result: Converged!")
+                self.table.print(f"{self.__class__.__name__} Cycles taken: {self.cur_cycle}")
+                self.table.print(f"{self.__class__.__name__} Time taken: {time.time() - self.start_time:.2f} s")
                 for k, v in self._convergence_result.items():
                     self.table.print(f"{k}: {v}")
                 break
@@ -973,9 +979,12 @@ class Optimizer(metaclass=abc.ABCMeta):
                         "Insignificant coordinate change after "
                         "reparametrization. Signalling convergence!"
                     )
+                    self.table.print(f"{self.__class__.__name__} pysis result: Converged on new coordinates!")
+                    self.table.print(f"{self.__class__.__name__} Cycles taken: {self.cur_cycle}")
+                    self.table.print(f"{self.__class__.__name__} Time taken: {time.time() - self.start_time:.2f} s")
                     break
 
-            # Alternative: calcualte overlap of AFIR force and step. If this
+            # Alternative: calculate overlap of AFIR force and step. If this
             # overlap is negative the step is taken against the AFIR force.
             if self.monitor_frag_dists_counter > 0:
                 interfrag_dist = interfragment_distance(
@@ -1000,11 +1009,16 @@ class Optimizer(metaclass=abc.ABCMeta):
             elif sign == "converged":
                 self.converged = True
                 self.table.print("Operator indicated convergence!")
+                self.table.print(f"{self.__class__.__name__} pysis result: Converged on operator!")
+                self.table.print(f"{self.__class__.__name__} Cycles taken: {self.cur_cycle}")
+                self.table.print(f"{self.__class__.__name__} Time taken: {time.time() - self.start_time:.2f} s")
                 break
 
             self.log("")
         else:
-            self.table.print("Number of cycles exceeded!")
+            self.table.print(f"{self.__class__.__name__} pysis result: Number of cycles exceeded!")
+            self.table.print(f"{self.__class__.__name__} Cycles taken: {self.cur_cycle}")
+            self.table.print(f"{self.__class__.__name__} Time taken: {time.time() - self.start_time:.2f} s")
 
         # Outside loop
         print()

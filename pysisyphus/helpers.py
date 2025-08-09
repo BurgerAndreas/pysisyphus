@@ -516,6 +516,7 @@ def do_final_hessian(
     # Andreas begin
     print(f"geom.calculator: {geom.calculator.__class__.__name__}")
     print(f"geom.calculator.model: {geom.calculator.model.__class__.__name__}")
+    print(f"geom.calculator.model.model: {geom.calculator.model.model.__class__.__name__}")
     # do frequency analysis with both hessian methods
     if hasattr(geom.calculator.model, "hessian_method"):
         hessian_method = geom.calculator.model.hessian_method
@@ -523,11 +524,11 @@ def do_final_hessian(
         
         # print the same thing again, but make clear which hessian method is used
         print()
-        print(f"{hessian_method} First 10 eigenvalues", eigval_str)
+        print(f"{hessian_method} first 8 eigenvalues\n", eigval_str)
         if neg_num > 0:
             wavenumbers = eigval_to_wavenumber(neg_eigvals)
             wavenum_str = np.array2string(wavenumbers, precision=2)
-            print(f"{hessian_method} Img freqs:", wavenum_str, "cm⁻¹")
+            print(f"{hessian_method} img freqs:\n", wavenum_str, "cm⁻¹")
         
         # print the other hessian method
         other_hessian_method = "autograd" if hessian_method == "predict" else "predict"
@@ -558,15 +559,16 @@ def do_final_hessian(
 
     imag_fns = list()
     if write_imag_modes:
+        print(f"Writing imaginary modes to {out_dir}/ts_imaginary_mode_*.trj")
         imag_modes = imag_modes_from_geom(geom)
         for i, imag_mode in enumerate(imag_modes):
             trj_fn = out_dir / (prefix + f"imaginary_mode_{i:03d}.trj")
             imag_fns.append(trj_fn)
             with open(trj_fn, "w") as handle:
                 handle.write(imag_mode.trj_str)
-            print(
-                f"Wrote imaginary mode with ṽ={imag_mode.nu: >10.2f} cm⁻¹ to '{trj_fn}'"
-            )
+            # print(
+            #     f"Wrote imaginary mode with ṽ={imag_mode.nu: >10.2f} cm⁻¹ to '{trj_fn}'"
+            # )
         print()
 
     thermo = None
