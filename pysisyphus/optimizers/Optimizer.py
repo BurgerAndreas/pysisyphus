@@ -790,6 +790,8 @@ class Optimizer(metaclass=abc.ABCMeta):
             prep_time = prep_end_time - prep_start_time
             self.report_conv_thresholds()
             print(f"Spent {prep_time:.1f} s preparing the first cycle.")
+        
+        self.start_time = time.time()
 
         self.table.print_header(with_sep=False)
         self.stopped = False
