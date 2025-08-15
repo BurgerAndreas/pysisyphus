@@ -1037,7 +1037,7 @@ class Optimizer(metaclass=abc.ABCMeta):
         with open(self.final_fn, "w") as handle:
             handle.write(self.geometry.as_xyz())
         self.table.print(
-            f"Wrote final, hopefully optimized, geometry to '{self.final_fn.name}'"
+            f"{self.__class__.__name__} Wrote final, hopefully optimized, geometry to '{self.final_fn.name}'"
         )
         self.postprocess_opt()
         sys.stdout.flush()

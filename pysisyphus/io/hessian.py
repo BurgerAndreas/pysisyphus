@@ -5,7 +5,7 @@ from pysisyphus.Geometry import Geometry
 from pysisyphus.helpers_pure import eigval_to_wavenumber
 
 
-def save_hessian(h5_fn, geom, cart_hessian=None, energy=None, mult=None):
+def save_hessian(h5_fn, geom, cart_hessian=None, energy=None, mult=None, verbose=True):
     if cart_hessian is None:
         cart_hessian = geom.cart_hessian
 

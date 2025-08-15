@@ -488,7 +488,34 @@ def do_final_hessian(
 
     print(highlight_text("Hessian at final geometry", level=1))
     print()
+    
+    return _do_hessian(
+        geom,
+        _name="final",
+        save_hessian=save_hessian,
+        write_imag_modes=write_imag_modes,
+        is_ts=is_ts,
+        prefix=prefix,
+        T=T,
+        p=p,
+        ev_thresh=ev_thresh,
+        print_thermo=print_thermo,
+        out_dir=out_dir,
+    )
 
+def _do_hessian(
+    geom,
+    _name,
+    save_hessian=True,
+    write_imag_modes=False,
+    is_ts=False,
+    prefix="",
+    T=T_DEFAULT,
+    p=p_DEFAULT,
+    ev_thresh=-1e-6,
+    print_thermo=False,
+    out_dir=None,
+):
     report_isotopes(geom, "the_frequencies")
 
     start = time.time()
@@ -506,12 +533,12 @@ def do_final_hessian(
     neg_eigvals = eigvals[neg_inds]
     neg_num = sum(neg_inds)
     eigval_str = np.array2string(eigvals[:10], precision=4)
-    print()
-    print("First 10 eigenvalues", eigval_str)
+    print(_name, "First 10 eigenvalues", eigval_str)
     if neg_num > 0:
         wavenumbers = eigval_to_wavenumber(neg_eigvals)
         wavenum_str = np.array2string(wavenumbers, precision=2)
-        print("Imaginary frequencies:", wavenum_str, "cm⁻¹")
+        print(_name, "Imaginary frequencies:", wavenum_str, "cm⁻¹")
+        print(_name, "neg_num:", neg_num)
 
     # Andreas begin
     print(f"geom.calculator: {geom.calculator.__class__.__name__}")
@@ -521,14 +548,22 @@ def do_final_hessian(
     if hasattr(geom.calculator.model, "hessian_method"):
         hessian_method = geom.calculator.model.hessian_method
         assert geom.calculator.model.hessian_method == geom.calculator.model.model.hessian_method
-        
-        # print the same thing again, but make clear which hessian method is used
-        print()
-        print(f"{hessian_method} first 8 eigenvalues\n", eigval_str)
+        # print the same imaginary frequencies for the default method again, 
+        # but make clear which hessian method is used
+        print(f"{_name} {hessian_method} first 10 eigenvalues", eigval_str)
         if neg_num > 0:
             wavenumbers = eigval_to_wavenumber(neg_eigvals)
             wavenum_str = np.array2string(wavenumbers, precision=2)
-            print(f"{hessian_method} img freqs:\n", wavenum_str, "cm⁻¹")
+            print(f"{_name} {hessian_method} img freqs:", wavenum_str, "cm⁻¹")
+            print(f"{_name} {hessian_method} neg_num:", neg_num)
+        # save the hessian for the default method
+        _h5_hessian_fn = f"{_name}_hessian_{hessian_method}.h5"
+        if out_dir is not None:
+            _h5_hessian_fn = out_dir / _h5_hessian_fn
+        _h5_hessian_fn = os.path.abspath(_h5_hessian_fn)
+        os.makedirs(os.path.dirname(_h5_hessian_fn), exist_ok=True)
+        save_h5_hessian(_h5_hessian_fn, geom, verbose=False)
+        print(f"Wrote {_name} {hessian_method} Hessian data HD5 file: '{_h5_hessian_fn}'.")
         
         # print the other hessian method
         other_hessian_method = "autograd" if hessian_method == "predict" else "predict"
@@ -540,12 +575,20 @@ def do_final_hessian(
             other_neg_eigvals = other_eigvals[other_neg_inds]
             other_neg_num = sum(other_neg_inds)
             other_eigval_str = np.array2string(other_eigvals[:10], precision=4)
-            print()
-            print(f"{other_hessian_method} First 10 eigenvalues", other_eigval_str)
+            print(f"{_name} {other_hessian_method} first 10 eigenvalues", other_eigval_str)
             if other_neg_num > 0:
                 other_wavenumbers = eigval_to_wavenumber(other_neg_eigvals)
                 other_wavenum_str = np.array2string(other_wavenumbers, precision=2)
-                print(f"{other_hessian_method} Img freqs:", other_wavenum_str, "cm⁻¹")
+                print(f"{_name} {other_hessian_method} img freqs:", other_wavenum_str, "cm⁻¹")
+                print(f"{_name} {other_hessian_method} neg_num:", other_neg_num)
+            # save the hessian for the other method
+            other_h5_hessian_fn = f"{_name}_hessian_{other_hessian_method}.h5"
+            if out_dir is not None:
+                other_h5_hessian_fn = out_dir / other_h5_hessian_fn
+            other_h5_hessian_fn = os.path.abspath(other_h5_hessian_fn)
+            save_h5_hessian(other_h5_hessian_fn, geom, verbose=False)
+            print(f"Wrote {_name} {other_hessian_method} Hessian data HD5 file: '{other_h5_hessian_fn}'.")
+            
     # Andreas end
     
     if prefix:
@@ -553,9 +596,13 @@ def do_final_hessian(
 
     # Dump HDF Hessian
     if save_hessian:
-        final_h5_hessian_fn = prefix + "final_hessian.h5"
-        save_h5_hessian(out_dir / final_h5_hessian_fn, geom)
-        print(f"Wrote Hessian data HD5 file '{final_h5_hessian_fn}'.")
+        _h5_hessian_fn = f"{_name}_hessian.h5"
+        if out_dir is not None:
+            _h5_hessian_fn = out_dir / _h5_hessian_fn
+        _h5_hessian_fn = os.path.abspath(_h5_hessian_fn)
+        os.makedirs(os.path.dirname(_h5_hessian_fn), exist_ok=True)
+        save_h5_hessian(_h5_hessian_fn, geom, verbose=False)
+        print(f"Wrote {_name} Hessian data HD5 file '{_h5_hessian_fn}'.")
 
     imag_fns = list()
     if write_imag_modes:

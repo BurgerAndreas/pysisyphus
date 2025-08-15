@@ -1474,6 +1474,13 @@ def main(run_dict, restart=False, yaml_dir="./", scheduler=None):
 
     # Recreate geometries with desired coordinate type and keyword arguments
     geoms = standardize_geoms(geoms, coord_type, geom_kwargs, union=union)
+    
+    # dump args for standardize_geoms
+    _geom_kwargs = geom_kwargs.copy()
+    _geom_kwargs["union"] = union
+    _geom_kwargs["coord_type"] = coord_type
+    with open("standardize_geoms_args.yaml", "w") as handle:
+        yaml.dump(_geom_kwargs, handle)
 
     # Create COS objects and supply a function that yields new Calculators,
     # as needed for growing COS classes, where images are added over time.

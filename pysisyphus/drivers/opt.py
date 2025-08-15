@@ -17,7 +17,7 @@ from pysisyphus.calculators import Dimer, ExternalPotential
 from pysisyphus.cos.ChainOfStates import ChainOfStates
 from pysisyphus.config import T_DEFAULT, p_DEFAULT
 from pysisyphus.Geometry import Geometry
-from pysisyphus.helpers import do_final_hessian
+from pysisyphus.helpers import do_final_hessian, _do_hessian
 from pysisyphus.helpers_pure import highlight_text, report_frozen_atoms
 from pysisyphus.io import save_hessian
 from pysisyphus.modefollow import NormalMode, geom_davidson
@@ -115,6 +115,24 @@ def run_opt(
     p = opt_kwargs.pop("p", p_DEFAULT)
     propagate = opt_kwargs.pop("propagate", False)
 
+    # Added Andreas
+    # before optimization, calculate and save the hessian
+    # save_hessian(h5_fn, geom)
+    if do_hess:
+        print("\n" + f"{__file__} {__name__} Initial Hessian")
+        _do_hessian(
+            geom,
+            _name="initial",
+            write_imag_modes=False,
+            prefix=opt_kwargs.get("prefix", "") + "step0",
+            T=T,
+            p=p,
+            print_thermo=False,
+            is_ts=is_tsopt,
+            out_dir=opt_kwargs.get("out_dir", None),
+        )
+        print()
+    
     opt_cls = get_opt_cls(opt_key)
     for i in range(iterative_max_cycles):
         # Modify hessian_init in later cycles, te reuse the calculated Hessian
@@ -218,6 +236,7 @@ def run_opt(
         print()
         prefix = opt_kwargs.get("prefix", "")
         out_dir = opt_kwargs.get("out_dir", None)
+        print(f"In {__file__} {__name__} do_final_hessian")
         do_final_hessian(
             geom,
             write_imag_modes=True,
