@@ -12,8 +12,12 @@ def save_hessian(h5_fn, geom, cart_hessian=None, energy=None, mult=None, verbose
     if energy is None:
         energy = geom.energy
 
+    # Molecular multiplicity (1 = singlet, 2 = doublet, ...)
     if mult is None:
-        mult = geom.calculator.mult
+        if hasattr(geom.calculator, "mult"):
+            mult = geom.calculator.mult
+        else:
+            mult = 1
 
     if len(geom.atoms) > 1:
         proj_hessian = geom.eckart_projection(geom.mass_weigh_hessian(cart_hessian))
