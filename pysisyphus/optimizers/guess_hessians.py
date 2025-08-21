@@ -260,8 +260,12 @@ def get_guess_hessian(
     except KeyError:
         # Only cartesian hessians can be loaded
         if str(hessian_init).endswith(".h5"):
+            print(f"{__file__} Loading Hessian from {hessian_init}")
             with h5py.File(hessian_init, "r") as handle:
                 cart_hessian = handle["hessian"][:]
+        elif isinstance(hessian_init, np.ndarray):
+            print(f"{__file__} got passed numpy array Hessian")
+            cart_hessian = hessian_init
         # CFOUR Hessians in the form we need are always named "FCMFINAL"
         elif str(hessian_init).endswith("FCMFINAL"):
             raw_cart_hessian = np.loadtxt(hessian_init, skiprows=1)

@@ -192,7 +192,7 @@ class Geometry:
             Iterable of length N, containing  element symbols.
         coords : 1d iterable
             1d iterable of length 3N, containing the cartesian coordinates
-            of N atoms.
+            of N atoms in Bohr.
         fragments : dict, optional
             Dict with different keys denoting different fragments. The values
             contain lists of atom indices.
@@ -1294,7 +1294,7 @@ class Geometry:
         Returns
         -------
         xyz_str : str
-            Current geometry as string in XYZ-format.
+            Current geometry as string in XYZ-format in Angstrom.
         """
         if atoms is None:
             atoms = self.atoms

@@ -166,7 +166,7 @@ class HessianOptimizer(Optimizer):
             self.hessian_recalc_in = None
             self.adapt_norm = None
             self.predicted_energy_changes = list()
-        hessian_init_exists = Path(self.hessian_init).exists()
+        hessian_init_exists = Path(self.hessian_init).exists() or isinstance(self.hessian_init, np.ndarray)
         if (
             # Allow actually calculated Hessians for all coordinate systems
             not hessian_init_exists
