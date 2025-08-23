@@ -166,7 +166,7 @@ class HessianOptimizer(Optimizer):
             self.hessian_recalc_in = None
             self.adapt_norm = None
             self.predicted_energy_changes = list()
-        hessian_init_exists = Path(self.hessian_init).exists() or isinstance(self.hessian_init, np.ndarray)
+        hessian_init_exists = isinstance(self.hessian_init, np.ndarray) or Path(self.hessian_init).exists()
         if (
             # Allow actually calculated Hessians for all coordinate systems
             not hessian_init_exists
@@ -204,9 +204,10 @@ class HessianOptimizer(Optimizer):
     def reset(self):
         # Don't recalculate the hessian if we have to reset the optimizer
         hessian_init = self.hessian_init
+        hessian_was_calc = isinstance(hessian_init, str) and hessian_init == "calc"
         if (
             (not self.hessian_recalc_reset)
-            and hessian_init == "calc"
+            and hessian_was_calc
             and self.geometry.coord_type != "cart"
         ):
             hessian_init = "fischer"
@@ -232,26 +233,31 @@ class HessianOptimizer(Optimizer):
     def prepare_opt(self, hessian_init=None):
         if hessian_init is None:
             hessian_init = self.hessian_init
+        
+        hessian_was_calc = isinstance(hessian_init, str) and hessian_init == "calc"
 
         self.H, hess_str = get_guess_hessian(self.geometry, hessian_init)
-        if self.hessian_init != "calc" and self.geometry.is_analytical_2d:
+        if not hessian_was_calc and self.geometry.is_analytical_2d:
             assert self.H.shape == (3, 3)
             self.H[2, 2] = 0.0
 
         msg = f"Using {hess_str} Hessian"
         if hess_str == "saved":
-            msg += f" from '{hessian_init}'"
+            if isinstance(hessian_init, np.ndarray):
+                msg += " from numpy array"
+            else:
+                msg += f" from '{hessian_init}'"
         self.log(msg)
 
         # Dump to disk if hessian was calculated
-        if self.hessian_init == "calc":
+        if hessian_was_calc:
             self.save_hessian()
 
         if (
             hasattr(self.geometry, "coord_type")
             and self.geometry.coord_type == "dlc"
             # Calculated Hessian is already in DLC
-            and hessian_init != "calc"
+            and not hessian_was_calc
         ):
             U = self.geometry.internal.U
             self.H = U.T.dot(self.H).dot(U)

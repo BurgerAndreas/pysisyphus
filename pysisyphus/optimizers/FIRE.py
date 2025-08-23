@@ -5,18 +5,35 @@ from pysisyphus.optimizers.Optimizer import Optimizer
 
 class FIRE(Optimizer):
     # https://doi.org/10.1103/PhysRevLett.97.170201
+    """
+    Structure optimization algorithm which is 
+    significantly faster than standard implementations of the conjugate gradient method 
+    and often competitive with more sophisticated quasi-Newton schemes
+    It is based on conventional molecular dynamics 
+    with additional velocity modifications and adaptive time steps.
+    """
 
     def __init__(
         self,
+        # Geometry providing coords, forces, energy
         geometry,
+        # Initial time step; adaptively scaled during optimization
         dt=0.1,
+        # Maximum allowed time step when increasing dt
         dt_max=1,
+        # Consecutive aligned steps before accelerating
         N_acc=2,
+        # Factor to increase dt on acceleration
         f_inc=1.1,
+        # Factor to reduce mixing a on acceleration; also shrinks dt on reset here
         f_acc=0.99,
+        # Unused in this implementation; typical FIRE uses to reduce dt on reset
         f_dec=0.5,
+        # Counter of aligned steps since last reset (start at 0)
         n_reset=0,
+        # Initial mixing parameter for velocity/force mixing; restored on reset
         a_start=0.1,
+        # Forwarded to base Optimizer
         **kwargs,
     ):
         self.dt = dt

@@ -228,7 +228,7 @@ def get_guess_hessian(
     of the geometry, otherwise a Hessian in primitive internals will
     be returned.
     """
-    model_hessian = hessian_init in ("fischer", "lindh", "simple", "swart")
+    model_hessian = isinstance(hessian_init, str) and hessian_init in ("fischer", "lindh", "simple", "swart")
     target_coord_type = geometry.coord_type
 
     # Recreate geometry with internal coordinates if needed
@@ -255,17 +255,17 @@ def get_guess_hessian(
         # XTB hessian using GFN-FF
         "xtbff": lambda: (xtb_hessian(geometry, gfn="ff"), "GFN-FF"),
     }
-    try:
+    if isinstance(hessian_init, str) and hessian_init in hess_funcs:
         H, hess_str = hess_funcs[hessian_init]()
-    except KeyError:
+    else:
         # Only cartesian hessians can be loaded
-        if str(hessian_init).endswith(".h5"):
+        if isinstance(hessian_init, np.ndarray):
+            print(f"{__file__} got passed numpy array Hessian")
+            cart_hessian = hessian_init
+        elif str(hessian_init).endswith(".h5"):
             print(f"{__file__} Loading Hessian from {hessian_init}")
             with h5py.File(hessian_init, "r") as handle:
                 cart_hessian = handle["hessian"][:]
-        elif isinstance(hessian_init, np.ndarray):
-            print(f"{__file__} got passed numpy array Hessian")
-            cart_hessian = hessian_init
         # CFOUR Hessians in the form we need are always named "FCMFINAL"
         elif str(hessian_init).endswith("FCMFINAL"):
             raw_cart_hessian = np.loadtxt(hessian_init, skiprows=1)

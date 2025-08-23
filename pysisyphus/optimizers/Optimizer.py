@@ -789,7 +789,7 @@ class Optimizer(metaclass=abc.ABCMeta):
             prep_end_time = time.time()
             prep_time = prep_end_time - prep_start_time
             self.report_conv_thresholds()
-            print(f"Spent {prep_time:.1f} s preparing the first cycle.")
+            print(f"{self.__class__.__name__} Spent {prep_time:.1f} s preparing the first cycle.")
         
         self.start_time = time.time()
 

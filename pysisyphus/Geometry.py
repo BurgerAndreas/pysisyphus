@@ -1024,8 +1024,10 @@ class Geometry:
         return self._hessian
     
     # Added Andreas for Equiformer calculator
-    def get_hessian_with_kwargs(self, **kwargs):
+    def get_hessian_with_kwargs(self, set_to_self=False, **kwargs):
         results = self.calculator.get_hessian(self.atoms, self._coords, **kwargs)
+        if set_to_self:
+            self.set_results(results)
         return results["hessian"]
 
     @cart_hessian.setter

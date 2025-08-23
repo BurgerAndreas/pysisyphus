@@ -569,7 +569,14 @@ def _do_hessian(
         other_hessian_method = "autograd" if hessian_method == "predict" else "predict"
         if other_hessian_method == "autograd" or geom.calculator.model.model.potential.do_hessian:
             # do_hessian==False and predict won't work
-            other_hessian = geom.get_hessian_with_kwargs(hessian_method=other_hessian_method)
+            other_geom = geom.copy_all()
+            other_hessian = other_geom.get_hessian_with_kwargs(
+                hessian_method=other_hessian_method,
+                set_to_self=True,
+            )
+            assert not np.allclose(other_geom.cart_hessian, geom.cart_hessian), (
+                f"The two hessians are the same: {np.max(np.abs(other_geom.cart_hessian - geom.cart_hessian)):.1e}"
+            )
             other_eigvals, _ = np.linalg.eigh(other_hessian)
             other_neg_inds = other_eigvals < ev_thresh
             other_neg_eigvals = other_eigvals[other_neg_inds]
@@ -586,7 +593,7 @@ def _do_hessian(
             if out_dir is not None:
                 other_h5_hessian_fn = out_dir / other_h5_hessian_fn
             other_h5_hessian_fn = os.path.abspath(other_h5_hessian_fn)
-            save_h5_hessian(other_h5_hessian_fn, geom, verbose=False)
+            save_h5_hessian(other_h5_hessian_fn, other_geom, verbose=False)
             print(f"Wrote {_name} {other_hessian_method} Hessian data HD5 file: '{other_h5_hessian_fn}'.")
             
     # Andreas end
