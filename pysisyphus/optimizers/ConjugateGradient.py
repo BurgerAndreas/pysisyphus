@@ -49,6 +49,7 @@ class ConjugateGradient(BacktrackingOptimizer):
         return beta
 
     def optimize(self):
+        print(f"{__file__} {self.__class__.__name__}.optimize()")
         cur_forces = self.forces[-1]
 
         if not self.resetted and self.cur_cycle > 0:
